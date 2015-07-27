@@ -1,6 +1,6 @@
 # wam-serverside
 
-Whats Around Me Backend Server Side Application, using Phalcon
+Whats Around Me Backend Server Side Application, using Phalcon 
 
 Team: Luke, Maen, Yar, Michael M (Developers), Sid (Designer), Bruce (Lead Mentor)
 
