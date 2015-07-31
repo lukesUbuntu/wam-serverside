@@ -1,6 +1,6 @@
 # wam-serverside
 
-Whats Around Me Android Application
+Whats Around Me Backend Server Side Application, using Phalcon
 
 Team: Luke, Maen, Yar, Michael M (Developers), Sid (Designer), Bruce (Lead Mentor)
 
@@ -34,4 +34,5 @@ The Android application was developed using Apache Cordova, AngularJS and the io
 <img src="http://imgur.com/CbhBJ4B.png">
 
 <img src="http://imgur.com/01oF9IM.png">
+
 
