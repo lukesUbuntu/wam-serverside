@@ -30,17 +30,11 @@ class ApiController extends ControllerBase
         if (!$this->request->isGet())
             $this->response("incorrect request type",false);
 
-        //get longitude if not null
-        $longitude = $this->request->get("longitude",null,false);
-        $latitude = $this->request->get("latitude",null,false);
+        //get long & lat
+        $cords = $this->getCords();
 
-        if (!$longitude)
-            $this->response("missing longitude ",false);
-
-        if (!$latitude)
-            $this->response("missing latitude",false);
         //check memcache
-        $response = $this->fromCache('getNews',$longitude,$latitude);
+        $response = $this->fromCache('getNews', $cords->longitude, $cords->latitude);
         if (!$response){
             //update out memcache
             $url = "http://wellington.gen.nz/geotagged/json";
@@ -48,14 +42,13 @@ class ApiController extends ControllerBase
             $process = curl_init($url);
             curl_setopt($process, CURLOPT_RETURNTRANSFER, TRUE);
             $response = curl_exec($process);
-            $this->setCache('getNews',$longitude,$latitude,$response);
+            $this->setCache('getNews',$cords->longitude,$cords->latitude,$response);
 
         }
 
-
-
         $this->response($response);
     }
+
     /**
      * Retrieves events from cache or fetches and returns events
      */
@@ -64,18 +57,11 @@ class ApiController extends ControllerBase
         if (!$this->request->isGet())
             $this->response("incorrect request type",false);
 
-        //get longitude if not null
-        $longitude = $this->request->get("longitude",null,false);
-        $latitude = $this->request->get("latitude",null,false);
-
-        if (!$longitude)
-            $this->response("missing longitude ",false);
-
-        if (!$latitude)
-            $this->response("missing latitude",false);
+        //get long & lat
+        $cords = $this->getCords();
 
         //check memcache
-        $response = $this->fromCache('getEvents',$longitude,$latitude);
+        $response = $this->fromCache('getEvents', $cords->longitude, $cords->latitude);
 
         if (!$response){
             $url = "http://api.eventfinda.co.nz/v2/events.json?point=$latitude,$longitude&radius=10";
@@ -98,6 +84,28 @@ class ApiController extends ControllerBase
 
 
     }
+
+    /**
+     * @return stdClass cords longitude & latitude from get request
+     */
+    private function getCords(){
+        //get longitude if not null
+        $longitude = $this->request->get("longitude",null,false);
+        $latitude = $this->request->get("latitude",null,false);
+
+        if (!$longitude)
+            $this->response("missing longitude ",false);
+
+        if (!$latitude)
+            $this->response("missing latitude",false);
+
+        $cords = new stdClass();
+        $cords->longitude = $longitude;
+        $cords->latitude = $latitude;
+        return $cords;
+    }
+
+    /** placeholder for distance for events */
     private function distanceEvent($response){
         $data = json_decode($response);
         $events = array();
@@ -111,6 +119,7 @@ class ApiController extends ControllerBase
             $events[] = $event;
         }
     }
+    /** placeholder for distance for news */
     private function distanceNews($response){
         $news_items = json_decode($response);
         $news_results = array();
