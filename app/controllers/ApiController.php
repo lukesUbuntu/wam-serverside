@@ -112,11 +112,13 @@ class ApiController extends ControllerBase
     /** placeholder for distance for events */
     private function setDistanceEvent($response){
         $data = json_decode($response);
+        $cords = $this->getCords();
+
         $events = array();
         foreach($data->events as $event){
 
             if (isset($event->point->lat) && ($event->point->lng)){
-                $distance = $this->calcDistance($event->point->lat,$event->point->lng,$latitude,$longitude);
+                $distance = $this->calcDistance($event->point->lat,$event->point->lng,$cords->latitude, $cords->longitude);
                 $event->distance = $distance;
             }
 
@@ -128,10 +130,11 @@ class ApiController extends ControllerBase
     private function setDistanceNews($response){
         $news_items = json_decode($response);
         $news_results = array();
+        $cords = $this->getCords();
 
         foreach($news_items as $news){
             if (isset($news->place->latLong->latitude) && (isset($news->place->latLong->longitude))){
-                $distance = $this->calcDistance($news->place->latLong->latitude,$news->place->latLong->longitude,$latitude,$longitude);
+                $distance = $this->calcDistance($news->place->latLong->latitude,$news->place->latLong->longitude,$cords->latitude, $cords->longitude);
                 $news->distance = $distance;
             }
             $news_results[] = $news;
