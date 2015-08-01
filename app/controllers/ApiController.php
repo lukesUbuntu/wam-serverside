@@ -40,18 +40,25 @@ class ApiController extends ControllerBase
         if (!$latitude)
             $this->response("missing latitude",false);
 
-        $url = "http://api.eventfinda.co.nz/v2/events.json?point=$latitude,$longitude&radius=5";
+        //check memcache
+        $response = $this->fromCache('getEvents');
 
-        //Set username and password for api access
-        $username = "wip";
-        $password = "y6w26w93mfbr";
+        if (!$response){
+
+            $url = "http://api.eventfinda.co.nz/v2/events.json?point=$latitude,$longitude&radius=5";
+            //Set username and password for api access
+            $username = "wip";
+            $password = "y6w26w93mfbr";
+            $process = curl_init($url);
+            curl_setopt($process, CURLOPT_USERPWD, $username . ":" . $password);
+            curl_setopt($process, CURLOPT_RETURNTRANSFER, TRUE);
+            $response = curl_exec($process);
+            $this->setCache('getEvents',$response);
+        }
+
+            $this->response($response);
 
 
-        $process = curl_init($url);
-        curl_setopt($process, CURLOPT_USERPWD, $username . ":" . $password);
-        curl_setopt($process, CURLOPT_RETURNTRANSFER, TRUE);
-        $return = curl_exec($process);
-        $this->response($return);
     }
     /**
      * @param $data response to send back as JSON with Callback
