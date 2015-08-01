@@ -13,16 +13,51 @@ use Phalcon\Http\Client\Provider;
 class ApiController extends ControllerBase
 {
     //@todo add memcache/or caching for json calls back to client
-
+    private $cords = null;
     /**
      * Index action main call to /api
      */
+    public function initialize(){
+        $this->cords = $this->getCords();
+    }
+
     public function IndexAction()
     {
 
         $this->response("Invalid API call", false);
     }
 
+    /**
+     * api/getRoadWorks
+     * @description returns news articles that are geo located
+     */
+    public function getRoadWorksAction(){
+
+        //get long & lat
+        //$cords = $this->getCords();
+
+        $response = $this->fromCache('getRoadWorks', $this->cords->longitude, $this->cords->latitude);
+        if (!$response){
+            $url =('http://www.nzta.govt.nz/assets/tas/markercollection.json');
+            $process = curl_init($url);
+            curl_setopt($process, CURLOPT_RETURNTRANSFER, TRUE);
+            $response = curl_exec($process);
+
+            $response = $this->setDistanceRoadWorks($response);
+            $this->setCache('getRoadWorks',$this->cords->longitude,$this->cords->latitude,$response);
+
+        }
+
+
+
+
+        $this->response($response);
+        /*
+        foreach ($road_events->roadworks->features as $newevents) {
+
+
+        }*/
+    }
     /**
      * api/getNews
      * @description returns news articles that are geo located
@@ -109,6 +144,28 @@ class ApiController extends ControllerBase
         return $cords;
     }
 
+    /** placeholder for distance for roadworks */
+    private function setDistanceRoadWorks($response){
+        $data = json_decode($response);
+        $cords = $this->getCords();
+
+        $road_works = array();
+        $roadworks_data = $data->roadworks->features;
+
+        foreach($roadworks_data as $issue){
+            if (count($issue->geometry->coordinates) > 1){
+                $distance = $this->calcDistance($issue->geometry->coordinates[1],$issue->geometry->coordinates[0],$cords->latitude, $cords->longitude);
+
+                $issue->distance = $distance;
+
+                if ($distance < 50)
+                $road_works[] = $issue;
+            }
+
+        }
+
+        return $road_works;
+    }
     /** placeholder for distance for events */
     private function setDistanceEvent($response){
         $data = json_decode($response);
