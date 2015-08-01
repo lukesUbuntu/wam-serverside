@@ -8,9 +8,12 @@
  * @description api controller to handle request to mobiel wam client
  */
 use Phalcon\Mvc\Model\Criteria;
+use Phalcon\Http\Client\Provider;
 
 class ApiController extends ControllerBase
 {
+    //@todo add memcache/or caching for json calls back to client
+
     /**
      * Index action main call to /api
      */
@@ -19,6 +22,37 @@ class ApiController extends ControllerBase
         $this->response("Invalid API call", false);
     }
 
+    /**
+     * Retrieves events from cache or fetches and returns events
+     */
+    public function getEventsAction()
+    {
+        if (!$this->request->isGet())
+            $this->response("incorrect request type",false);
+
+        //get longiture if not null
+        $longitude = $this->request->get("longitude",null,false);
+        $latitude = $this->request->get("latitude",null,false);
+
+        if (!$longitude)
+            $this->response("missing longitude ",false);
+
+        if (!$latitude)
+            $this->response("missing latitude",false);
+
+        $url = "http://api.eventfinda.co.nz/v2/events.json?point=$latitude,$longitude&radius=5";
+
+        //Set username and password for api access
+        $username = "wip";
+        $password = "y6w26w93mfbr";
+
+
+        $process = curl_init($url);
+        curl_setopt($process, CURLOPT_USERPWD, $username . ":" . $password);
+        curl_setopt($process, CURLOPT_RETURNTRANSFER, TRUE);
+        $return = curl_exec($process);
+        $this->response($return);
+    }
     /**
      * @param $data response to send back as JSON with Callback
      * @param bool|true $success
