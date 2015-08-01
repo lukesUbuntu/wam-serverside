@@ -1,9 +1,9 @@
 <?php
 //putting debug info here for now
-/*ini_set('display_errors',1);
+ini_set('display_errors',1);
 ini_set('display_startup_errors',1);
 error_reporting(-1);
-*/
+
 use Phalcon\Mvc\Controller;
 
 
@@ -44,7 +44,7 @@ class ControllerBase extends Controller
      * @param $longitude
      * @param $latitude
      */
-    public function setCache($event,$data,$longitude,$latitude){
+    public function setCache($event,$longitude,$latitude,$data){
         $cacheKey = $this->cacheKey($event,$longitude,$latitude);
 
         $this->cache->save($cacheKey, $data);

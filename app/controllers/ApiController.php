@@ -19,10 +19,43 @@ class ApiController extends ControllerBase
      */
     public function IndexAction()
     {
-        
+
         $this->response("Invalid API call", false);
     }
 
+    /**
+     *
+     */
+    public function getNewsAction(){
+        if (!$this->request->isGet())
+            $this->response("incorrect request type",false);
+
+        //get longitude if not null
+        $longitude = $this->request->get("longitude",null,false);
+        $latitude = $this->request->get("latitude",null,false);
+
+        if (!$longitude)
+            $this->response("missing longitude ",false);
+
+        if (!$latitude)
+            $this->response("missing latitude",false);
+        //check memcache
+        $response = $this->fromCache('getNews',$longitude,$latitude);
+        if (!$response){
+            //update out memcache
+            $url = "http://wellington.gen.nz/geotagged/json";
+
+            $process = curl_init($url);
+            curl_setopt($process, CURLOPT_RETURNTRANSFER, TRUE);
+            $response = curl_exec($process);
+            $this->setCache('getNews',$longitude,$latitude,$response);
+
+        }
+
+
+
+        $this->response($response);
+    }
     /**
      * Retrieves events from cache or fetches and returns events
      */
@@ -31,7 +64,7 @@ class ApiController extends ControllerBase
         if (!$this->request->isGet())
             $this->response("incorrect request type",false);
 
-        //get longiture if not null
+        //get longitude if not null
         $longitude = $this->request->get("longitude",null,false);
         $latitude = $this->request->get("latitude",null,false);
 
@@ -42,24 +75,73 @@ class ApiController extends ControllerBase
             $this->response("missing latitude",false);
 
         //check memcache
-        $response = $this->fromCache('getEvents');
+        $response = $this->fromCache('getEvents',$longitude,$latitude);
 
         if (!$response){
+            $url = "http://api.eventfinda.co.nz/v2/events.json?point=$latitude,$longitude&radius=10";
+           //Set username and password for api access
 
-            $url = "http://api.eventfinda.co.nz/v2/events.json?point=$latitude,$longitude&radius=5";
-            //Set username and password for api access
             $username = "wip";
             $password = "y6w26w93mfbr";
             $process = curl_init($url);
             curl_setopt($process, CURLOPT_USERPWD, $username . ":" . $password);
             curl_setopt($process, CURLOPT_RETURNTRANSFER, TRUE);
             $response = curl_exec($process);
-            $this->setCache('getEvents',$response);
+            //add in distance
+
+            $this->setCache('getEvents',$longitude,$latitude,$response);
+
         }
 
-            $this->response($response);
+
+        $this->response($response);
 
 
+    }
+    private function distanceEvent($response){
+        $data = json_decode($response);
+        $events = array();
+        foreach($data->events as $event){
+
+            if (isset($event->point->lat) && ($event->point->lng)){
+                $distance = $this->calcDistance($event->point->lat,$event->point->lng,$latitude,$longitude);
+                $event->distance = $distance;
+            }
+
+            $events[] = $event;
+        }
+    }
+    private function distanceNews($response){
+        $news_items = json_decode($response);
+        $news_results = array();
+
+        foreach($news_items as $news){
+            if (isset($news->place->latLong->latitude) && (isset($news->place->latLong->longitude))){
+                $distance = $this->calcDistance($news->place->latLong->latitude,$news->place->latLong->longitude,$latitude,$longitude);
+                $news->distance = $distance;
+            }
+            $news_results[] = $news;
+
+        }
+    }
+    /**
+     * @description returns the distance in km between latitude points
+     * @param $latitude1
+     * @param $longitude1
+     * @param $latitude2
+     * @param $longitude2
+     * @return float km
+     */
+    private function calcDistance($latitude1, $longitude1, $latitude2, $longitude2) {
+        //source found https://www.marketingtechblog.com/calculate-distance/
+        $theta = $longitude1 - $longitude2;
+        $distance = (sin(deg2rad($latitude1)) * sin(deg2rad($latitude2))) + (cos(deg2rad($latitude1)) * cos(deg2rad($latitude2)) * cos(deg2rad($theta)));
+        $distance = acos($distance);
+        $distance = rad2deg($distance);
+        $distance = $distance * 60 * 1.1515;
+        //kms
+        $distance = $distance * 1.609344;
+        return (round($distance,2));
     }
     /**
      * @param $data response to send back as JSON with Callback
@@ -84,4 +166,5 @@ class ApiController extends ControllerBase
         $response->send();
         exit; //kill from other processing
     }
+
 }
