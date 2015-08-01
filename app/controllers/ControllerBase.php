@@ -11,9 +11,10 @@ class ControllerBase extends Controller
 {
     private $cache = null;      //memcache
 
-
+    /*
     public function initialize()
     {
+
         // Cache data for 5 mins
         $frontCache = new \Phalcon\Cache\Frontend\Data(array(
             "lifetime" => 300
@@ -25,7 +26,7 @@ class ControllerBase extends Controller
             'persistent' => false
         ));
     }
-
+    */
     /**
      * @param $event
      * @param longitude
@@ -34,7 +35,7 @@ class ControllerBase extends Controller
      */
     public function fromCache($event,$longitude,$latitude){
         $cacheKey = $this->cacheKey($event,$longitude,$latitude);
-
+        return false;
         return $this->cache->get($cacheKey);
     }
 
@@ -46,7 +47,7 @@ class ControllerBase extends Controller
      */
     public function setCache($event,$longitude,$latitude,$data){
         $cacheKey = $this->cacheKey($event,$longitude,$latitude);
-
+        return false;
         $this->cache->save($cacheKey, $data);
     }
 
