@@ -24,7 +24,8 @@ class ApiController extends ControllerBase
     }
 
     /**
-     *
+     * api/getNews
+     * @description returns news articles that are geo located
      */
     public function getNewsAction(){
         if (!$this->request->isGet())
@@ -42,6 +43,8 @@ class ApiController extends ControllerBase
             $process = curl_init($url);
             curl_setopt($process, CURLOPT_RETURNTRANSFER, TRUE);
             $response = curl_exec($process);
+            //add in distance
+            $response = $this->setDistanceNews($response);
             $this->setCache('getNews',$cords->longitude,$cords->latitude,$response);
 
         }
@@ -64,7 +67,7 @@ class ApiController extends ControllerBase
         $response = $this->fromCache('getEvents', $cords->longitude, $cords->latitude);
 
         if (!$response){
-            $url = "http://api.eventfinda.co.nz/v2/events.json?point=$latitude,$longitude&radius=10";
+            $url = "http://api.eventfinda.co.nz/v2/events.json?point=$cords->latitude,$cords->longitude&radius=10";
            //Set username and password for api access
 
             $username = "wip";
@@ -74,8 +77,9 @@ class ApiController extends ControllerBase
             curl_setopt($process, CURLOPT_RETURNTRANSFER, TRUE);
             $response = curl_exec($process);
             //add in distance
+            $response = $this->setDistanceEvent($response);
 
-            $this->setCache('getEvents',$longitude,$latitude,$response);
+            $this->setCache('getEvents',$cords->longitude,$cords->latitude,$response);
 
         }
 
@@ -106,7 +110,7 @@ class ApiController extends ControllerBase
     }
 
     /** placeholder for distance for events */
-    private function distanceEvent($response){
+    private function setDistanceEvent($response){
         $data = json_decode($response);
         $events = array();
         foreach($data->events as $event){
@@ -118,9 +122,10 @@ class ApiController extends ControllerBase
 
             $events[] = $event;
         }
+        return $events;
     }
     /** placeholder for distance for news */
-    private function distanceNews($response){
+    private function setDistanceNews($response){
         $news_items = json_decode($response);
         $news_results = array();
 
@@ -132,6 +137,7 @@ class ApiController extends ControllerBase
             $news_results[] = $news;
 
         }
+        return $news_results;
     }
     /**
      * @description returns the distance in km between latitude points
