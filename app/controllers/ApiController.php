@@ -13,13 +13,10 @@ use Phalcon\Http\Client\Provider;
 class ApiController extends ControllerBase
 {
     //@todo add memcache/or caching for json calls back to client
-    private $cords = null;
+
     /**
      * Index action main call to /api
      */
-    public function initialize(){
-        $this->cords = $this->getCords();
-    }
 
     public function IndexAction()
     {
@@ -34,7 +31,7 @@ class ApiController extends ControllerBase
     public function getRoadWorksAction(){
 
         //get long & lat
-        //$cords = $this->getCords();
+        //$cords = $this->cords;
 
         $response = $this->fromCache('getRoadWorks', $this->cords->longitude, $this->cords->latitude);
         if (!$response){
@@ -67,7 +64,7 @@ class ApiController extends ControllerBase
             $this->response("incorrect request type",false);
 
         //get long & lat
-        $cords = $this->getCords();
+        $cords = $this->cords;
 
         //check memcache
         $response = $this->fromCache('getNews', $cords->longitude, $cords->latitude);
@@ -96,7 +93,7 @@ class ApiController extends ControllerBase
             $this->response("incorrect request type",false);
 
         //get long & lat
-        $cords = $this->getCords();
+        $cords = $this->cords;
 
         //check memcache
         $response = $this->fromCache('getEvents', $cords->longitude, $cords->latitude);
@@ -124,35 +121,19 @@ class ApiController extends ControllerBase
 
     }
 
-    /**
-     * @return stdClass cords longitude & latitude from get request
-     */
-    private function getCords(){
-        //get longitude if not null
-        $longitude = $this->request->get("longitude",null,false);
-        $latitude = $this->request->get("latitude",null,false);
 
-        if (!$longitude)
-            $this->response("missing longitude ",false);
-
-        if (!$latitude)
-            $this->response("missing latitude",false);
-
-        $cords = new stdClass();
-        $cords->longitude = $longitude;
-        $cords->latitude = $latitude;
-        return $cords;
-    }
 
     /** placeholder for distance for roadworks */
     private function setDistanceRoadWorks($response){
         $data = json_decode($response);
-        $cords = $this->getCords();
+        $cords = $this->cords;
 
         $road_works = array();
         $roadworks_data = $data->roadworks->features;
 
         foreach($roadworks_data as $issue){
+
+            // $issue->images->{'images'}[0]->transforms->transforms[0]->url
             if (count($issue->geometry->coordinates) > 1){
                 $distance = $this->calcDistance($issue->geometry->coordinates[1],$issue->geometry->coordinates[0],$cords->latitude, $cords->longitude);
 
@@ -169,7 +150,7 @@ class ApiController extends ControllerBase
     /** placeholder for distance for events */
     private function setDistanceEvent($response){
         $data = json_decode($response);
-        $cords = $this->getCords();
+        $cords = $this->cords;
 
         $events = array();
         foreach($data->events as $event){
@@ -177,6 +158,11 @@ class ApiController extends ControllerBase
             if (isset($event->point->lat) && ($event->point->lng)){
                 $distance = $this->calcDistance($event->point->lat,$event->point->lng,$cords->latitude, $cords->longitude);
                 $event->distance = $distance;
+
+                if (isset($event->images->{'images'})){
+                    $event->thumbnail = $event->images->{'images'}[0]->transforms->transforms[0]->url;
+                }
+
             }
 
             $events[] = $event;
@@ -187,7 +173,7 @@ class ApiController extends ControllerBase
     private function setDistanceNews($response){
         $news_items = json_decode($response);
         $news_results = array();
-        $cords = $this->getCords();
+        $cords = $this->cords;
 
         foreach($news_items as $news){
             if (isset($news->place->latLong->latitude) && (isset($news->place->latLong->longitude))){
@@ -218,28 +204,6 @@ class ApiController extends ControllerBase
         $distance = $distance * 1.609344;
         return (round($distance,2));
     }
-    /**
-     * @param $data response to send back as JSON with Callback
-     * @param bool|true $success
-     * @param int $status_code of response default 200
-     * @param string $status_message of response default OK
-     */
-    private function response($data, $success = true, $status_code = 200, $status_message = "OK")
-    {
-        //disable view
-        $this->view->disable();
-        //new response
-        $response = new \Phalcon\Http\Response();
-        $response->setStatusCode($status_code, $status_message);
-        $response->setContentType('application/json', 'utf-8');
-        //encode call
-        $json = json_encode(array('success' => $success, 'data' => $data));
-        //set response to send back check for callback
-        $response->setContent(isset($_GET['callback'])
-            ? "{$_GET['callback']}($json)"
-            : $json);
-        $response->send();
-        exit; //kill from other processing
-    }
+
 
 }
