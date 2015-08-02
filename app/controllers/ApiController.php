@@ -79,6 +79,7 @@ class ApiController extends ControllerBase
             $response = $this->setDistanceNews($response);
             $this->setCache('getNews',$cords->longitude,$cords->latitude,$response);
 
+
         }
 
         $this->response($response);
@@ -179,10 +180,19 @@ class ApiController extends ControllerBase
             if (isset($news->place->latLong->latitude) && (isset($news->place->latLong->longitude))){
                 $distance = $this->calcDistance($news->place->latLong->latitude,$news->place->latLong->longitude,$cords->latitude, $cords->longitude);
                 $news->distance = $distance;
+
+                if (empty($news->imageUrl))
+                    $news->imageUrl = "http://wam.nzhost.me/img/default.jpg";
+
+
+            /*if (empty($news->imageUrl))
+                $news->imageUrl = "http://wam.nzhost.me/img/default.jpg";
+                //http://wam.nzhost.me/img/default.jpg*/
             }
             $news_results[] = $news;
 
         }
+
         return $news_results;
     }
     /**
