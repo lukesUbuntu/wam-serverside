@@ -1,0 +1,127 @@
+body{
+    font-family: "Titillium Web", sans-serif;
+}
+/*------------- navbar css --------------*/
+.navbar{
+    background-color: #e4e6e5;
+    opacity: 0.8;
+    font-weight: bold;
+    font-size: 1.5em;
+    margin-bottom: 0px;
+}
+.navbar a:hover{
+    cursor: pointer;
+}
+.homeIcon{
+    color: #222;
+}
+.homeLink:hover{
+    border-bottom: 2px solid #222;
+}
+.newsIcon{
+    color: #039FDA;
+}
+.newsLink:hover{
+    border-bottom: 2px solid #039FDA;
+}
+.eventsIcon{
+    color: #00C167;
+}
+.eventsLink:hover{
+    border-bottom: 2px solid #00C167;
+}
+.roadWorksIcon{
+    color: #0466BF;
+}
+.raodWorksLink:hover{
+    border-bottom: 2px solid #0466BF;
+}
+.weatherIcon{
+    color: orange;
+}
+.weatherLink:hover{
+    border-bottom: 2px solid orange;
+}
+.navbar .navbar-nav {
+    display: inline-block;
+    float: none;
+}
+.navbar .navbar-collapse {
+    text-align: center;
+}
+/*------------ main banner css ------------*/
+.mainBanner{
+    background-image: url("../images/bg1.jpg");
+    background-size: cover;
+    background-position: center center;
+    text-align: center;
+    height: auto;
+    width: 100%;
+    padding: 15% !important;
+    color: white;
+}
+.mainBanner span{
+    color: lightblue;
+}
+/*------------ first section css -----------*/
+.firstSection{
+    background-color: #039FDA;
+    padding: 2%;
+}
+.newsSummaryHolder{
+    margin-top: 1.7%;
+}
+.firstSection img{
+    width: 100%;
+}
+/*------------ second section css -----------*/
+.secondSection{
+    background-color: #00C167;
+    padding: 2%;
+}
+.eventsContainer{
+    margin-top: 5%;
+    padding-bottom: 2%;
+}
+/*------------ third section css -----------*/
+.thirdSection{
+    background-color: #0466BF;
+    padding: 2%;
+}
+.roadWorksContainer{
+    text-align: center;
+}
+.roadWorksContainer div > div{
+    background-color: lightgray;
+    margin-top: 5%;
+}
+/*---mixItUp css---*/
+#roadWorksHolder .mix{
+    display: none;
+}
+/*------------ fourth section css -----------*/
+.fourthSection{
+    background-image: url("../images/6.jpg");
+    background-size: cover;
+    background-position: center center;
+    padding-left: 10%;
+    padding-right: 10%;
+    padding-bottom: 15%;
+}
+.weatherContainer{
+    background: rgba(1, 1, 25, .5);
+    padding: 4%;
+    color: white;
+}
+/*------------ footer css --------------*/
+footer{
+    background-color: #e4e6e5;
+    padding: 1%;
+}
+.footerContainer{
+    margin-top: 3%;
+    text-align: center;
+}
+.footerContainer i{
+    font-size: 2.5em;
+}

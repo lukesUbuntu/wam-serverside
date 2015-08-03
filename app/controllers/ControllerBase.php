@@ -16,7 +16,7 @@ class ControllerBase extends Controller
     {
         // Cache data for 5 mins
         $frontCache = new \Phalcon\Cache\Frontend\Data(array(
-            "lifetime" => 0
+            "lifetime" => 300
         ));
         //Create the Cache setting memcached connection options
         $this->cache = new \Phalcon\Cache\Backend\Memcache($frontCache, array(
@@ -105,8 +105,10 @@ class ControllerBase extends Controller
         $this->view->disable();
         //new response
         $response = new \Phalcon\Http\Response();
+        //header('Access-Control-Allow-Origin: *');
         $response->setStatusCode($status_code, $status_message);
         $response->setContentType('application/json', 'utf-8');
+        $response->setHeader('Access-Control-Allow-Origin', '*');
         //encode call
         $json = json_encode(array('success' => $success, 'data' => $data));
         //set response to send back check for callback
